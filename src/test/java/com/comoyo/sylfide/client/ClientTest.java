@@ -1,5 +1,6 @@
 package com.comoyo.sylfide.client;
 
+import org.json.JSONException;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ public class ClientTest {
     private static String apiBaseUrl;
 
     public ClientTest() {
-        apiBaseUrl = "http://localhost:8080/id/";
+        apiBaseUrl = "http://localhost:8080/";
     }
 
     @Test
@@ -26,6 +27,12 @@ public class ClientTest {
     public void testAuthedRequest() throws IOException {
         Client c = new Client(apiBaseUrl);
         c.authedRequest();
+    }
+
+    @Test
+    public void testTemplates() throws IOException, JSONException {
+        Client c = new Client(apiBaseUrl);
+        c.findURItemplates();
     }
 
 }

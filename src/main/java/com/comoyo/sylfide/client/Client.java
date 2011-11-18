@@ -16,9 +16,14 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
+import org.cloudname.uritemplate.UriTemplate;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -32,12 +37,35 @@ public class Client
         apiEndPoint = endpoint;
     }
 
-    public void findURItemplates() throws IOException {
+    public void findURItemplates() throws IOException, JSONException {
+
+        // Set up a connection to the API using Apache HTTP Client
         HttpClient httpClient = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(apiEndPoint);
+        URI requestURI = httpGet.getURI();
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String body = httpClient.execute(httpGet, responseHandler);
-        JSONObject templates = new JSONObject(body);
+
+        // Pick up the templates using JSON parsing
+        JSONObject templates = new JSONObject(body).getJSONObject("templates");
+
+        // Somehow populate a map of variables
+        Map<String, String> variables = new HashMap<String, String>();
+        variables.put("userid", "123123123");
+        variables.put("username", "foo@example.com");
+
+        // Example showing expand of user identity template
+        String userIdentityTemplate = templates.getString("user-identity");
+        String userHrefExpanded = new UriTemplate(userIdentityTemplate).expand(variables);
+        URI userHrefUri = requestURI.resolve(userHrefExpanded);
+        System.out.println("userHrefUri = " + userHrefUri);
+
+        // Example showing expand of user lookup template
+        String userLookupTemplate = templates.getString("user-lookup-by-username");
+        String userLookupExpanded = new UriTemplate(userLookupTemplate).expand(variables);
+        URI userLookupUri = requestURI.resolve(userLookupExpanded);
+        System.out.println("userLookupUri = " + userLookupUri);
+
     }
 
     public void simpleRequest() throws IOException {
@@ -78,7 +106,7 @@ public class Client
             localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
 
-            HttpGet httpget = new HttpGet("/id/users");
+            HttpGet httpget = new HttpGet("/users");
 
             System.out.println("executing request " + httpget.getRequestLine());
             System.out.println("to target: " + targetHost);
